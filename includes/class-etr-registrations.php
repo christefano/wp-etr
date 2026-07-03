@@ -50,6 +50,12 @@ class Registrations {
 
 		// Editors get the no-show toggle, which posts to admin-ajax with a nonce.
 		if ( $can_edit ) {
+			// The editor view embeds per-registrant PII and tokenized edit links.
+			// Never let a page cache store this response and later serve it to an
+			// anonymous visitor — belt-and-suspenders over "don't cache logged-in".
+			if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+				define( 'DONOTCACHEPAGE', true );
+			}
 			wp_localize_script( 'etr-tabs', 'etrData', [
 				'ajaxurl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'etr_status' ),
@@ -84,7 +90,7 @@ class Registrations {
 				);
 				echo '<td class="etr-col-num">' . ( $is_ns ? '&mdash;' : esc_html( $seed ) ) . '</td>';
 				echo '<td class="etr-col-name">' . $this->name_cell( $r, $can_edit ) . '</td>'; // phpcs:ignore WordPress.Security.EscapeOutput — escaped within
-				echo '<td class="etr-col-uscf">' . esc_html( $r['uscf_id'] ) . '</td>';
+				echo '<td class="etr-col-uscf">' . $this->uscf_id_cell( $r ) . '</td>'; // phpcs:ignore WordPress.Security.EscapeOutput — escaped in uscf_id_cell()
 				echo '<td class="etr-col-rating">' . $this->rating_cell( $r ) . '</td>'; // phpcs:ignore WordPress.Security.EscapeOutput — escaped in rating_cell()
 				echo '</tr>';
 				if ( ! $is_ns ) {
@@ -169,8 +175,13 @@ class Registrations {
 					<dd><?php echo $disp !== '' ? esc_html( $disp ) : '&mdash;'; ?></dd>
 				<?php endforeach; ?>
 			</dl>
-			<?php $ns = ! empty( $r['noshow'] ); ?>
+			<?php $ns = ! empty( $r['noshow'] ); $edit_url = $this->etecf_edit_url( $aid ); ?>
 			<div class="etr-card-actions">
+				<?php if ( $edit_url ) : ?>
+					<a class="etr-btn" href="<?php echo esc_url( $edit_url ); ?>" target="_blank" rel="noopener">
+						<?php esc_html_e( 'Edit registration details', 'etr' ); ?>
+					</a>
+				<?php endif; ?>
 				<button type="button" class="etr-btn etr-status-toggle" data-etr-toggle
 						data-etr-id="<?php echo $aid; ?>"
 						data-etr-status="<?php echo $ns ? 'noshow' : ''; ?>"
@@ -206,6 +217,19 @@ class Registrations {
 		}
 		echo '</div>';
 		return ob_get_clean();
+	}
+
+	/**
+	 * USCF ID table cell. Links a numeric member ID to the player's
+	 * ratings.uschess.org profile; non-numeric values ("Need new ID") stay plain.
+	 */
+	private function uscf_id_cell( array $r ) {
+		$id = $r['uscf_id'];
+		if ( ! ctype_digit( $id ) ) {
+			return esc_html( $id );
+		}
+		return '<a href="' . esc_url( 'https://ratings.uschess.org/player/' . $id )
+			. '" target="_blank" rel="noopener">' . esc_html( $id ) . '</a>';
 	}
 
 	/**
@@ -334,6 +358,22 @@ class Registrations {
 
 		Plugin::instance()->purge_event_cache( $event_id );
 		wp_send_json_success( [ 'status' => $status ] );
+	}
+
+	/**
+	 * ETECF's front-end "Edit registration details" URL for an attendee's order.
+	 * The URL carries a token derived from the site's salt (wp_hash), so it must
+	 * be built by ETECF on this same site — reimplementing the token here would
+	 * break whenever the salt or ETECF's scheme differs. Guarded so the button
+	 * simply doesn't render if ETECF is absent or changes its API.
+	 */
+	private function etecf_edit_url( $attendee_id ) {
+		if ( ! class_exists( '\Etecf\Plugin' ) ) return '';
+		$order_id = wp_get_post_parent_id( (int) $attendee_id );
+		if ( ! $order_id ) return '';
+		$etecf = \Etecf\Plugin::instance();
+		if ( ! method_exists( $etecf, 'registration_url_for_order' ) ) return '';
+		return (string) $etecf->registration_url_for_order( $order_id );
 	}
 
 	/** Human-readable status for an export row. */

@@ -24,6 +24,7 @@ class Plugin {
 		'details_tab_label'       => 'Tournament Details',
 		'registrations_tab_label' => 'Registrations',
 		'empty_text'              => 'No registrations yet.',
+		'show_tab_count'          => true,
 	];
 
 	public static function instance() {
@@ -321,7 +322,7 @@ class Plugin {
 				<button type="button" class="etr-tab" role="tab" id="etr-tab-registrations"
 						aria-selected="false" aria-controls="etr-panel-registrations" tabindex="-1">
 					<?php echo esc_html( $reg_label ); ?>
-					<?php if ( $reg_total > 0 ) : ?>
+					<?php if ( $reg_total > 0 && ! empty( $opts['show_tab_count'] ) ) : ?>
 						<span class="etr-tab-count"><?php echo esc_html( number_format_i18n( $reg_total ) ); ?></span>
 					<?php endif; ?>
 				</button>

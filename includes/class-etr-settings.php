@@ -220,6 +220,16 @@ class Settings {
 							<p class="description"><?php esc_html_e( 'Shown on the Registrations tab when no attendees have a section yet.', 'etr' ); ?></p>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Registration count', 'etr' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="etr_options[show_tab_count]" value="1" <?php checked( ! empty( $opts['show_tab_count'] ) ); ?>>
+								<?php esc_html_e( 'Show the registration count badge on the Registrations tab', 'etr' ); ?>
+							</label>
+							<p class="description"><?php esc_html_e( 'The count is baked into the cached event page. With a page cache (e.g. W3 Total Cache) enabled, it can briefly show a stale number after someone registers — until that event\'s cache is purged. Turn this off if a temporarily-wrong count would confuse visitors.', 'etr' ); ?></p>
+						</td>
+					</tr>
 				</table>
 
 				<?php submit_button( __( 'Save Settings', 'etr' ) ); ?>
@@ -271,6 +281,9 @@ class Settings {
 			$val = sanitize_text_field( $raw[ $tk ] ?? '' );
 			$out[ $tk ] = $val !== '' ? $val : $defaults[ $tk ];
 		}
+
+		// Checkbox: unchecked posts nothing, so absence means 0.
+		$out['show_tab_count'] = ! empty( $raw['show_tab_count'] ) ? 1 : 0;
 
 		update_option( 'etr_options', $out );
 		Plugin::instance()->invalidate_opts_cache();
