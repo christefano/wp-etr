@@ -1,0 +1,268 @@
+/* Event Tickets Registrations — front-end tabs + registrations table. */
+
+.etr-tabs {
+	margin: 1.5em 0;
+}
+
+.etr-tablist {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem;
+	border-bottom: 2px solid #d0d0d0;
+	margin-bottom: 1.25em;
+}
+
+.etr-tab {
+	appearance: none;
+	background: transparent;
+	border: 0;
+	border-bottom: 3px solid transparent;
+	margin-bottom: -2px;
+	padding: 0.6em 1.1em;
+	font: inherit;
+	font-weight: 600;
+	color: #555;
+	cursor: pointer;
+}
+
+.etr-tab:hover,
+.etr-tab:focus-visible {
+	color: #111;
+}
+
+.etr-tab.is-active {
+	color: #111;
+	border-bottom-color: #c00;
+}
+
+.etr-tab-count {
+	display: inline-block;
+	min-width: 1.4em;
+	margin-left: 0.35em;
+	padding: 0 0.45em;
+	font-size: 0.75em;
+	font-weight: 700;
+	line-height: 1.5;
+	text-align: center;
+	color: #fff;
+	background: #c00;
+	border-radius: 999px;
+	vertical-align: middle;
+}
+
+.etr-tabpanel[hidden] {
+	display: none;
+}
+
+.etr-section {
+	margin: 0 0 2em;
+}
+
+.etr-section-title {
+	margin: 0 0 0.5em;
+	font-size: 1.25rem;
+}
+
+.etr-section-count {
+	color: #888;
+	font-weight: 400;
+	font-size: 0.9em;
+}
+
+.etr-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.etr-table th,
+.etr-table td {
+	text-align: left;
+	padding: 0.5em 0.75em;
+	border-bottom: 1px solid #e5e5e5;
+}
+
+.etr-table thead th {
+	border-bottom: 2px solid #ccc;
+	font-size: 0.8em;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: #666;
+}
+
+.etr-col-num {
+	width: 3em;
+	text-align: right;
+	color: #888;
+	font-variant-numeric: tabular-nums;
+}
+
+.etr-col-uscf {
+	width: 9em;
+	font-variant-numeric: tabular-nums;
+}
+
+.etr-col-rating {
+	width: 6em;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+.etr-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	margin: 0 0 1.25em;
+}
+
+.etr-btn {
+	display: inline-block;
+	padding: 0.4em 0.9em;
+	font-size: 0.85rem;
+	font-weight: 600;
+	line-height: 1.4;
+	color: #222;
+	background: #f3f3f3;
+	border: 1px solid #cfcfcf;
+	border-radius: 4px;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.etr-btn:hover,
+.etr-btn:focus-visible {
+	background: #e9e9e9;
+	color: #000;
+}
+
+.etr-total {
+	margin-top: 1em;
+	padding-top: 0.75em;
+	border-top: 2px solid #ccc;
+	font-weight: 700;
+}
+
+.etr-name-btn {
+	appearance: none;
+	background: transparent;
+	border: 0;
+	padding: 0;
+	margin: 0;
+	font: inherit;
+	color: #06c;
+	text-align: left;
+	cursor: pointer;
+	text-decoration: underline;
+	text-decoration-style: dotted;
+	text-underline-offset: 2px;
+}
+
+.etr-name-btn:hover,
+.etr-name-btn:focus-visible {
+	color: #04a;
+}
+
+/* Native popover: the card is the top-layer box; ::backdrop is the overlay. */
+.etr-card {
+	width: calc( 100% - 2rem );
+	max-width: 360px;
+	max-height: 85vh;
+	margin: auto; /* center in the viewport top layer */
+	overflow: auto;
+	padding: 1.25rem 1.5rem;
+	background: #fff;
+	border: 1px solid #cfcfcf;
+	border-radius: 8px;
+	box-shadow: 0 12px 40px rgba( 0, 0, 0, 0.3 );
+}
+
+.etr-card::backdrop {
+	background: rgba( 0, 0, 0, 0.5 );
+}
+
+/* In supporting browsers the UA hides a closed popover automatically. On
+   browsers without the Popover API the attribute is inert and the element
+   would render inline, so hide it there (the card feature is simply absent). */
+@supports not selector( :popover-open ) {
+	.etr-card {
+		display: none;
+	}
+}
+
+.etr-card-close {
+	position: absolute;
+	top: 0.4rem;
+	right: 0.5rem;
+	appearance: none;
+	background: transparent;
+	border: 0;
+	font-size: 1.5rem;
+	line-height: 1;
+	color: #666;
+	cursor: pointer;
+}
+
+.etr-card-close:hover {
+	color: #000;
+}
+
+.etr-card-name {
+	margin: 0 1.5rem 0.75rem 0;
+	font-size: 1.15rem;
+}
+
+.etr-card-fields {
+	margin: 0;
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 0.35rem 1rem;
+}
+
+.etr-card-fields dt {
+	font-weight: 600;
+	color: #555;
+}
+
+.etr-card-fields dd {
+	margin: 0;
+}
+
+.etr-card-actions {
+	margin-top: 1rem;
+	padding-top: 0.85rem;
+	border-top: 1px solid #eee;
+}
+
+/* No-show rows: sunk to the bottom of their section, struck and dimmed. */
+.etr-row--noshow .etr-col-name,
+.etr-row--noshow .etr-col-uscf,
+.etr-row--noshow .etr-col-rating {
+	text-decoration: line-through;
+	color: #999;
+}
+
+.etr-row--noshow {
+	opacity: 0.7;
+}
+
+.etr-registrations--empty {
+	color: #666;
+	font-style: italic;
+}
+
+@media print {
+	.etr-toolbar,
+	.no-print {
+		display: none !important;
+	}
+}
+
+@media ( max-width: 600px ) {
+	.etr-table th,
+	.etr-table td {
+		padding: 0.4em 0.4em;
+	}
+
+	.etr-col-uscf {
+		width: auto;
+	}
+}
