@@ -36,7 +36,7 @@ Sections are optional but at least one is required. This rule is enforced by ETE
 
 ## Versions
 
-ETR's version number mirrors the versions of The Event Calendar and Event Tickets that ETR is known to work with. For example, ETR v5.2 is known to work with The Events Calendar v5.2.x and Event Tickets v5.2.x and may not have been tested with newer versions.
+ETR's version number mirrors the versions of Event Tickets Extra Custom Fields that ETR is known to work with. For example, ETR v5.2 is known to work with Event Tickets Extra Custom Fields v5.2.x and may not have been tested with newer versions.
 
 ## Uninstall
 
