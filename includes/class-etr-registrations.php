@@ -98,7 +98,7 @@ class Registrations {
 				}
 
 				if ( $can_edit ) {
-					$cards .= $this->render_player_card( $r, $card_fields );
+					$cards .= $this->render_player_card( $r, $card_fields, $event_id );
 				}
 			}
 
@@ -155,7 +155,7 @@ class Registrations {
 	 * Hidden player-card dialog listing all of an attendee's custom fields.
 	 * Rendered only for event editors (gated by the caller).
 	 */
-	private function render_player_card( array $r, array $card_fields ) {
+	private function render_player_card( array $r, array $card_fields, $event_id ) {
 		$aid = (int) $r['id'];
 		ob_start();
 		?>
@@ -189,10 +189,31 @@ class Registrations {
 						data-label-clear="<?php esc_attr_e( 'Clear no-show', 'etr' ); ?>">
 					<?php echo $ns ? esc_html__( 'Clear no-show', 'etr' ) : esc_html__( 'Mark no-show', 'etr' ); ?>
 				</button>
+				<?php echo $this->mailto_link( $aid, $event_id, $r['name'] ); // phpcs:ignore WordPress.Security.EscapeOutput — escaped in mailto_link() ?>
 			</div>
 		</div>
 		<?php
 		return ob_get_clean();
+	}
+
+	/**
+	 * "Email player" button linking to the attendee's Tickets Commerce email,
+	 * subject pre-filled with the event name. Returns '' when the attendee has
+	 * no email on file, mirroring how the "Edit registration details" button
+	 * is conditionally rendered.
+	 */
+	private function mailto_link( $aid, $event_id, $name ) {
+		$email = get_post_meta( $aid, '_tec_tickets_commerce_email', true );
+		if ( ! $email ) return '';
+
+		$subject = sprintf( __( 'Regarding your registration for %s', 'etr' ), get_the_title( $event_id ) );
+		$href    = 'mailto:' . $email . '?subject=' . rawurlencode( $subject );
+
+		return sprintf(
+			'<a class="etr-btn etr-btn--icon" href="%s" aria-label="%s">✉</a>',
+			esc_url( $href ),
+			esc_attr( sprintf( __( 'Email %s', 'etr' ), $name ) )
+		);
 	}
 
 	/**

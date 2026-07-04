@@ -28,7 +28,7 @@ On a single event with Event Registrations enabled, the event info splits into r
 `[etr_registrations event="123"]` embeds a table anywhere (defaults to the current event or the most recently created event when used somewhere other than on an event page).
 
 - **Editor tools.**
-Users who can edit the event get extras: click any player name to open a card showing all of that attendee's fields, and from that card mark (or clear) the player as a no-show. No-shows drop to the bottom of their section, are struck through, and don't get a pairing number (making pairing a bit easier).
+Users who can edit the event get extras: click any player name to open a card showing all of that attendee's fields, send the player an email via button with `mailto` link, and from that card mark (or clear) the player as a no-show. No-shows drop to the bottom of their section, are struck through, and don't get a pairing number (making pairing a bit easier).
 
 - **Exports.**
 A "Print" button opens a clean, print-ready wall sheet (one section per page for now) and is available to everyone. Users who can edit the event also get "Download CSV" and "Pairing export" buttons. The "Pairing export" botton formats one player per row (last name, first name, USCF ID, rating, section) for import into pairing software such as SwissSys or WinTD. Both exports end with a Status column that flags no-shows.
