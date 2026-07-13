@@ -54,6 +54,45 @@
 	display: none;
 }
 
+/* The TEC "Add to calendar" subscribe widget and the Event Tickets "Get
+   Tickets" form both render outside the tab panels (as later siblings of
+   .etr-tabs on the main the_content path; on the block-template fallback
+   path they can render even above the tablist) - the panels' own [hidden]
+   attribute never touches them. assets/etr-tabs.js mirrors the active tab
+   onto document.body[data-etr-active-tab] on load and on every tab switch,
+   so hide both widgets whenever a tab other than "Details" is active, and
+   show them again on Details.
+   Note: etr-tabs.js only ever sets data-etr-active-tab on the real tabbed
+   path (a "Details" tab present); the block-template fallback path (no
+   Details tab - see Plugin::render_tabs_fallback()) never sets it, so these
+   rules never fire there and the widgets that path already printed above
+   the event body stay visible - see etr-tabs.js's drivesBodyAttr for why.
+   Selector list is theme/TEC-version dependent: confirmed present in this
+   install's rendered markup (TEC/ET current versions as of 2026-07-11 -
+   curl -sk https://macchess.local/events/4288/). The older "classic" TEC
+   widget wrapper, .tribe-events-cal-links, was NOT found on this page and
+   is intentionally omitted; add it back if a theme/TEC downgrade
+   reintroduces it. */
+body[data-etr-active-tab]:not([data-etr-active-tab="details"]) .tribe-events-c-subscribe-dropdown__container,
+body[data-etr-active-tab]:not([data-etr-active-tab="details"]) .event-tickets,
+body[data-etr-active-tab]:not([data-etr-active-tab="details"]) .tribe-tickets__tickets-wrapper,
+body[data-etr-active-tab]:not([data-etr-active-tab="details"]) .tribe-events-event-meta,
+body[data-etr-active-tab]:not([data-etr-active-tab="details"]) .tribe-events-meta-group-details,
+body[data-etr-active-tab]:not([data-etr-active-tab="details"]) .tribe-events-meta-group-venue,
+body[data-etr-active-tab]:not([data-etr-active-tab="details"]) .tribe-events-meta-group-organizer {
+	display: none !important;
+}
+
+/* Fallback wrapper for TEC v2 single-event templates, where inject_tabs()
+   never fires — see Plugin::render_tabs_fallback(). Contains a real
+   .etr-tabs tablist (Registrations plus any 'etr_event_tabs'-filtered
+   extras, no Details tab), styled identically to inject_tabs()'s tabs;
+   kept as a distinct wrapper class only for back-compat with site CSS
+   still targeting it. */
+.etr-registrations-fallback {
+	margin: 1.5em 0;
+}
+
 .etr-section {
 	margin: 0 0 2em;
 }
@@ -87,6 +126,18 @@
 	text-transform: uppercase;
 	letter-spacing: 0.03em;
 	color: #666;
+}
+
+.etr-col-photo {
+	width: 48px;
+}
+
+.etr-avatar {
+	display: block;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	object-fit: cover;
 }
 
 .etr-col-num {
@@ -132,12 +183,6 @@
 .etr-btn:focus-visible {
 	background: #e9e9e9;
 	color: #000;
-}
-
-.etr-btn--icon {
-	font-size: 1.4rem;
-	line-height: 1;
-	padding: 0.12em 0.4em;
 }
 
 .etr-total {
@@ -233,10 +278,6 @@
 }
 
 .etr-card-actions {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 0.4rem;
 	margin-top: 1rem;
 	padding-top: 0.85rem;
 	border-top: 1px solid #eee;
@@ -263,6 +304,13 @@
 	.etr-toolbar,
 	.no-print {
 		display: none !important;
+	}
+
+	/* Avatars print with the rest of the table (no display:none here); just
+	   shrink them a bit to keep the printed wall sheet compact. */
+	.etr-avatar {
+		width: 32px;
+		height: 32px;
 	}
 }
 

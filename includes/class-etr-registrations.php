@@ -28,9 +28,10 @@ class Registrations {
 	 * non-empty section, or the configured empty message.
 	 */
 	public function render( $event_id ) {
-		$event_id = (int) $event_id;
-		$sections = Plugin::instance()->build_sections( $event_id );
-		$opts     = Plugin::instance()->get_opts();
+		$event_id    = (int) $event_id;
+		$sections    = Plugin::instance()->build_sections( $event_id );
+		$opts        = Plugin::instance()->get_opts();
+		$show_photos = Plugin::instance()->is_photos_enabled( $event_id );
 
 		// Ensure the table CSS + print/tab JS are present, including when the
 		// table is embedded via shortcode off the single-event page.
@@ -74,6 +75,9 @@ class Registrations {
 				count( $rows )
 			);
 			echo '<table class="etr-table"><thead><tr>';
+			if ( $show_photos ) {
+				echo '<th class="etr-col-photo" scope="col"><span class="screen-reader-text">' . esc_html__( 'Photo', 'etr' ) . '</span></th>';
+			}
 			echo '<th class="etr-col-num" scope="col">#</th>';
 			echo '<th class="etr-col-name" scope="col">' . esc_html__( 'Name', 'etr' ) . '</th>';
 			echo '<th class="etr-col-uscf" scope="col">' . esc_html__( 'USCF ID', 'etr' ) . '</th>';
@@ -88,6 +92,9 @@ class Registrations {
 					$is_ns ? ' etr-row--noshow' : '',
 					(int) $r['id']
 				);
+				if ( $show_photos ) {
+					echo '<td class="etr-col-photo">' . $this->photo_cell( $r ) . '</td>'; // phpcs:ignore WordPress.Security.EscapeOutput — escaped in photo_cell()
+				}
 				echo '<td class="etr-col-num">' . ( $is_ns ? '&mdash;' : esc_html( $seed ) ) . '</td>';
 				echo '<td class="etr-col-name">' . $this->name_cell( $r, $can_edit ) . '</td>'; // phpcs:ignore WordPress.Security.EscapeOutput — escaped within
 				echo '<td class="etr-col-uscf">' . $this->uscf_id_cell( $r ) . '</td>'; // phpcs:ignore WordPress.Security.EscapeOutput — escaped in uscf_id_cell()
@@ -98,7 +105,7 @@ class Registrations {
 				}
 
 				if ( $can_edit ) {
-					$cards .= $this->render_player_card( $r, $card_fields, $event_id );
+					$cards .= $this->render_player_card( $r, $card_fields );
 				}
 			}
 
@@ -155,7 +162,7 @@ class Registrations {
 	 * Hidden player-card dialog listing all of an attendee's custom fields.
 	 * Rendered only for event editors (gated by the caller).
 	 */
-	private function render_player_card( array $r, array $card_fields, $event_id ) {
+	private function render_player_card( array $r, array $card_fields ) {
 		$aid = (int) $r['id'];
 		ob_start();
 		?>
@@ -189,31 +196,10 @@ class Registrations {
 						data-label-clear="<?php esc_attr_e( 'Clear no-show', 'etr' ); ?>">
 					<?php echo $ns ? esc_html__( 'Clear no-show', 'etr' ) : esc_html__( 'Mark no-show', 'etr' ); ?>
 				</button>
-				<?php echo $this->mailto_link( $aid, $event_id, $r['name'] ); // phpcs:ignore WordPress.Security.EscapeOutput — escaped in mailto_link() ?>
 			</div>
 		</div>
 		<?php
 		return ob_get_clean();
-	}
-
-	/**
-	 * "Email player" button linking to the attendee's Tickets Commerce email,
-	 * subject pre-filled with the event name. Returns '' when the attendee has
-	 * no email on file, mirroring how the "Edit registration details" button
-	 * is conditionally rendered.
-	 */
-	private function mailto_link( $aid, $event_id, $name ) {
-		$email = get_post_meta( $aid, '_tec_tickets_commerce_email', true );
-		if ( ! $email ) return '';
-
-		$subject = sprintf( __( 'Regarding your registration for %s', 'etr' ), get_the_title( $event_id ) );
-		$href    = 'mailto:' . $email . '?subject=' . rawurlencode( $subject );
-
-		return sprintf(
-			'<a class="etr-btn etr-btn--icon" href="%s" aria-label="%s">✉</a>',
-			esc_url( $href ),
-			esc_attr( sprintf( __( 'Email %s', 'etr' ), $name ) )
-		);
 	}
 
 	/**
@@ -235,9 +221,54 @@ class Registrations {
 			$pair  = add_query_arg( [ 'action' => 'etr_export', 'format' => 'pairing', 'event' => $event_id, '_wpnonce' => $nonce ], $base );
 			printf( ' <a class="etr-btn" href="%s">%s</a>', esc_url( $csv ),  esc_html__( 'Download CSV', 'etr' ) );
 			printf( ' <a class="etr-btn" href="%s">%s</a>', esc_url( $pair ), esc_html__( 'Pairing export', 'etr' ) );
+
+			// Tournament Manager import: only when Tournament Manager is
+			// active and the current user can manage tournaments there.
+			// Guarded by class_exists() so ETR keeps working unchanged when
+			// Tournament Manager is absent or deactivated.
+			if ( class_exists( '\WPMTM_ETR_Import' ) && current_user_can( 'wpmtm_manage_tournaments' ) ) {
+				$import_nonce = wp_create_nonce( 'wpmtm_import_from_event_' . $event_id );
+				$import_url   = add_query_arg( [ 'action' => 'wpmtm_import_from_event', 'event' => $event_id, '_wpnonce' => $import_nonce ], admin_url( 'admin-post.php' ) );
+				printf( ' <a class="etr-btn" href="%s">%s</a>', esc_url( $import_url ), esc_html__( 'Import to Tournament Manager', 'etr' ) );
+			}
 		}
 		echo '</div>';
 		return ob_get_clean();
+	}
+
+	/**
+	 * Avatar table cell. Renders the attendee's ETECF profile photo at a fixed
+	 * 40x40 when one is set, or ETR's own fallback silhouette otherwise, so
+	 * every row gets an image and the column never breaks alignment.
+	 */
+	private function photo_cell( array $r ) {
+		$photo_id = (int) ( $r['photo_id'] ?? 0 );
+		if ( $photo_id > 0 ) {
+			$img = wp_get_attachment_image( $photo_id, 'etecf-avatar', false, [
+				'width'  => 40,
+				'height' => 40,
+				'class'  => 'etr-avatar',
+				'alt'    => $r['name'],
+			] );
+			if ( $img !== '' ) {
+				return $img;
+			}
+		}
+		return $this->no_photo_svg();
+	}
+
+	/**
+	 * Inline "no profile photo" silhouette, duplicated locally (rather than
+	 * calling \Etecf\Plugin::avatar_svg()) so this feature, and ETR generally,
+	 * keeps working unchanged when ETECF is absent.
+	 */
+	private function no_photo_svg() {
+		return '<svg class="etr-avatar etr-avatar--fallback" width="40" height="40" viewBox="0 0 128 128" '
+			. 'xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' . esc_attr__( 'No profile photo', 'etr' ) . '">'
+			. '<rect width="128" height="128" rx="64" fill="#EAE7DE"/>'
+			. '<circle cx="64" cy="50" r="22" fill="#b48c49" opacity="0.55"/>'
+			. '<path d="M24 118c4-26 20-38 40-38s36 12 40 38" fill="#b48c49" opacity="0.55"/>'
+			. '</svg>';
 	}
 
 	/**

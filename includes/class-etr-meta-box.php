@@ -35,7 +35,8 @@ class Meta_Box {
 	public function render( $post ) {
 		wp_nonce_field( 'etr_meta_box_save_' . $post->ID, 'etr_meta_box_nonce' );
 
-		$show = (bool) get_post_meta( $post->ID, '_etr_show_registrations', true );
+		$show        = (bool) get_post_meta( $post->ID, '_etr_show_registrations', true );
+		$show_photos = (bool) get_post_meta( $post->ID, '_etr_show_photos', true );
 
 		$hidden = get_post_meta( $post->ID, '_etr_hidden_sections', true );
 		$hidden = is_array( $hidden ) ? $hidden : [];
@@ -47,6 +48,15 @@ class Meta_Box {
 				<input type="checkbox" name="etr_show_registrations" value="1" <?php checked( $show ); ?>>
 				<?php esc_html_e( 'Show the Registrations tab on this event', 'etr' ); ?>
 			</label>
+		</p>
+
+		<p>
+			<label>
+				<input type="checkbox" name="etr_show_photos" value="1" <?php checked( $show_photos ); ?>>
+				<?php esc_html_e( 'Show profile pictures', 'etr' ); ?>
+			</label>
+			<br>
+			<span class="description"><?php esc_html_e( 'Adds a photo column to the registrations tables. Attendees without a saved photo show a placeholder silhouette.', 'etr' ); ?></span>
 		</p>
 
 		<?php if ( ! empty( $section_options ) ) : ?>
@@ -87,6 +97,12 @@ class Meta_Box {
 			update_post_meta( $post_id, '_etr_show_registrations', 1 );
 		} else {
 			delete_post_meta( $post_id, '_etr_show_registrations' );
+		}
+
+		if ( ! empty( $_POST['etr_show_photos'] ) ) {
+			update_post_meta( $post_id, '_etr_show_photos', 1 );
+		} else {
+			delete_post_meta( $post_id, '_etr_show_photos' );
 		}
 
 		// Store only section values that currently exist in the ETECF options.
