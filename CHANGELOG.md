@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.2.5
+
+- Added a "Validate players" button under the "Registrations" tab (next to "Pairing export") when Tournament Manager is active. It checks every registered player's USCF membership status against the USCF ratings API through the event's end date, with results shown right below the Registrations tab. This release just adds the button, and USCF validation is all in Tournament Manager.
+
 ## 5.2.4
 
 - Support for optional Tournament Manager: added an "Import to Tournament Manager" button (next to "Pairing export") when Tournament Manager is active.

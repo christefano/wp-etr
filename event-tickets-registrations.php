@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Event Tickets Registrations
  * Description: Adds a public Registrations tab to The Events Calendar event pages, grouping Event Tickets attendees into sections (defined in Extra Custom Fields).
- * Version: 5.2.4
+ * Version: 5.2.5
  * Author: Christefano Reyes
  * Plugin URI: https://github.com/christefano/wp-etr
  * Requires at least: 6.7
@@ -15,7 +15,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'ETR_VERSION', '5.2.4' );
+define( 'ETR_VERSION', '5.2.5' );
 define( 'ETR_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ETR_URL',  plugin_dir_url( __FILE__ ) );
 
